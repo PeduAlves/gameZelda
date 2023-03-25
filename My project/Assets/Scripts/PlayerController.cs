@@ -6,15 +6,20 @@ public class PlayerController : MonoBehaviour
 {
     private Animator animator;
     private CharacterController controller;
-    private bool isWalk;
     private Vector3 direction;
+    private float horizontal;
+    private bool isAtack;
+    private bool isWalk;
+    private float vertical;
 
-    //Header serve para aparecer o titulo como caixinha na unity
+    
     [Header("Player Config")]
     public float MovementSpeed = 3f;
 
-    [Header("Camera")]
-    public GameObject CamB;
+    [Header("Attack Config")]
+    public ParticleSystem FxAtk;
+
+
 
     void Start(){
 
@@ -23,19 +28,47 @@ public class PlayerController : MonoBehaviour
     }
     void Update(){
         
+        Inputs();       
+        MoveChar();
+        UpdateAnimator();
+        
+    }
+
+
+#region MeusMetodos
+
+    //Ataque
+    void Attack(){
+
+        isAtack = true;
+        animator.SetTrigger("Attack");
+        FxAtk.Emit(1);
+    }
+
+    void AttackIsDone(){
+
+        isAtack = false;
+    }
+
+    //Recebe inputs do sistema
+    void Inputs(){
+
         //Direcao de movimento
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        float vertical = Input.GetAxisRaw("Vertical");
+        horizontal = Input.GetAxisRaw("Horizontal");
+        vertical = Input.GetAxisRaw("Vertical");
 
         //Ataque
-        if( Input.GetButtonDown("Fire1") ){
+        if( Input.GetButtonDown("Fire1") && !isAtack ){
 
-            animator.SetTrigger("Attack");
+            Attack();
         }
+    }
+
+    //Rotação e alteração de isWalk (esta andando)
+    void MoveChar(){
 
         direction = new Vector3( horizontal, 0, vertical ).normalized;
-
-        //Rotação e verificação de isWalk (esta andando)
+       
         if( direction.magnitude > 0.1f){
             
             float targetAngle = Mathf.Atan2( direction.x, direction.z) * Mathf.Rad2Deg;
@@ -49,26 +82,15 @@ public class PlayerController : MonoBehaviour
 
         //Movimentação
         controller.Move( direction * MovementSpeed * Time.deltaTime );
+    }
+
+    //Atualiza a variavel de movimento
+    void UpdateAnimator(){
 
         animator.SetBool("isWalk", isWalk);
     }
 
-    private void OnTriggerEnter(Collider other) {
+#endregion
 
-        switch( other.gameObject.tag ){
-
-            case "CamTrigger":
-                CamB.SetActive(true);
-                break;
-        }       
-    }
-    private void OnTriggerExit(Collider other) {
-        
-        switch( other.gameObject.tag ){
-
-            case "CamTrigger":
-                CamB.SetActive(false);
-                break;
-        }
-    }
 }
+
