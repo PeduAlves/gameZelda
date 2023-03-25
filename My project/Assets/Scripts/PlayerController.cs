@@ -13,6 +13,9 @@ public class PlayerController : MonoBehaviour
     [Header("Player Config")]
     public float MovementSpeed = 3f;
 
+    [Header("Camera")]
+    public GameObject CamB;
+
     void Start(){
 
         controller = GetComponent<CharacterController>();
@@ -20,9 +23,11 @@ public class PlayerController : MonoBehaviour
     }
     void Update(){
         
+        //Direcao de movimento
         float horizontal = Input.GetAxisRaw("Horizontal");
         float vertical = Input.GetAxisRaw("Vertical");
 
+        //Ataque
         if( Input.GetButtonDown("Fire1") ){
 
             animator.SetTrigger("Attack");
@@ -30,6 +35,7 @@ public class PlayerController : MonoBehaviour
 
         direction = new Vector3( horizontal, 0, vertical ).normalized;
 
+        //Rotação e verificação de isWalk (esta andando)
         if( direction.magnitude > 0.1f){
             
             float targetAngle = Mathf.Atan2( direction.x, direction.z) * Mathf.Rad2Deg;
@@ -41,8 +47,28 @@ public class PlayerController : MonoBehaviour
             isWalk = false;
         }
 
+        //Movimentação
         controller.Move( direction * MovementSpeed * Time.deltaTime );
 
         animator.SetBool("isWalk", isWalk);
+    }
+
+    private void OnTriggerEnter(Collider other) {
+
+        switch( other.gameObject.tag ){
+
+            case "CamTrigger":
+                CamB.SetActive(true);
+                break;
+        }       
+    }
+    private void OnTriggerExit(Collider other) {
+        
+        switch( other.gameObject.tag ){
+
+            case "CamTrigger":
+                CamB.SetActive(false);
+                break;
+        }
     }
 }
