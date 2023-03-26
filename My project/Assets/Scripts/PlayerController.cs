@@ -4,10 +4,11 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    private Animator animator;
+    private Animator anim;
     private CharacterController controller;
     private Vector3 direction;
     private float horizontal;
+    private Collider[] hitinfo;
     private bool isAtack;
     private bool isWalk;
     private float vertical;
@@ -17,14 +18,20 @@ public class PlayerController : MonoBehaviour
     public float MovementSpeed = 3f;
 
     [Header("Attack Config")]
+    public int AmountDmg = 10;
     public ParticleSystem FxAtk;
+    public LayerMask HitMask;
+    public Transform HitBox;
+    [Range(0.2f, 1f)]
+    public float HitRange;
+    
 
 
 
     void Start(){
 
         controller = GetComponent<CharacterController>();
-        animator = GetComponent<Animator>();
+        anim = GetComponent<Animator>();
     }
     void Update(){
         
@@ -41,8 +48,15 @@ public class PlayerController : MonoBehaviour
     void Attack(){
 
         isAtack = true;
-        animator.SetTrigger("Attack");
+        anim.SetTrigger("Attack");
         FxAtk.Emit(1);
+
+        hitinfo = Physics.OverlapSphere(HitBox.position, HitRange, HitMask);
+
+        foreach( Collider c in hitinfo){
+
+            c.gameObject.SendMessage("GetHit", AmountDmg, SendMessageOptions.DontRequireReceiver);
+        }
     }
 
     void AttackIsDone(){
@@ -87,10 +101,15 @@ public class PlayerController : MonoBehaviour
     //Atualiza a variavel de movimento
     void UpdateAnimator(){
 
-        animator.SetBool("isWalk", isWalk);
+        anim.SetBool("isWalk", isWalk);
     }
 
 #endregion
+
+    private void OnDrawGizmos() {
+        
+        Gizmos.DrawWireSphere(HitBox.position, HitRange);
+    }
 
 }
 
