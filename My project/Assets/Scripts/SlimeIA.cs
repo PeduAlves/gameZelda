@@ -6,18 +6,16 @@ using UnityEngine.AI;
 public class SlimeIA : MonoBehaviour
 {
     private Animator anim;
-    private GameManager _GM;
-    private bool isDie;
     private NavMeshAgent agent;
     private Vector3 destination;
+    private GameManager _GM;
+    private bool isDie;
+    private bool isWalk;
+    private bool isAlert;
     private int idWayPoint;
 
     public int HP = 3;
     public enemyState state;
-
-    //Constantes de tempo da corotina
-    public const float IdleWaitTime = 3f;
-    public const float PatrolWaitTime = 5f;
     
 
     void Start(){
@@ -28,6 +26,21 @@ public class SlimeIA : MonoBehaviour
         _GM = FindObjectOfType(typeof(GameManager)) as GameManager;
 
         ChangeState(state);
+    }
+    void Update() {
+        
+        StateManager();
+
+        if( agent.desiredVelocity.magnitude >= 0.1f){
+
+            isWalk = true;
+        }
+        else{
+
+            isWalk = false;
+        }
+
+        anim.SetBool("IsWalk", isWalk);
     }
 
 
@@ -40,6 +53,7 @@ public class SlimeIA : MonoBehaviour
         
         if( HP > 0){
 
+            ChangeState( enemyState.FURY );
             anim.SetTrigger("GetHit");
         }
         else{
@@ -64,12 +78,8 @@ public class SlimeIA : MonoBehaviour
             break;
             case enemyState.FURY:
 
-            break;
-            case enemyState.IDLE:
-
-            break;
-            case enemyState.PATROL:
-
+            destination = _GM.Player.position;
+            agent.destination = destination;
             break;
         }
     }
@@ -93,19 +103,26 @@ public class SlimeIA : MonoBehaviour
                 StartCoroutine("FOLLOW");
             break;
             case enemyState.FURY:
+
+                destination = _GM.Player.position;
+                agent.stoppingDistance = _GM.SlimeDistanceToAttack;
+                agent.destination = destination;
+
                 StartCoroutine("FURY");
             break;
             case enemyState.IDLE:
 
                 destination = transform.position;
+                agent.stoppingDistance = 0;
                 agent.destination = destination;
 
                 StartCoroutine("IDLE");
             break;
             case enemyState.PATROL:
 
-                idWayPoint = Random.Range( 0, _GM.slimeWayPoints.Length );
-                destination = _GM.slimeWayPoints[idWayPoint].position;
+                idWayPoint = Random.Range( 0, _GM.SlimeWayPoints.Length );
+                destination = _GM.SlimeWayPoints[idWayPoint].position;
+                agent.stoppingDistance = 0;
                 agent.destination = destination;
 
                 StartCoroutine("PATROL");
@@ -115,27 +132,27 @@ public class SlimeIA : MonoBehaviour
 
     IEnumerator ALERT(){
 
-        yield return new WaitForSeconds(IdleWaitTime);
+        yield return new WaitForSeconds(1);
     }
 
     IEnumerator EXPLORE(){
 
-        yield return new WaitForSeconds(IdleWaitTime);
+        yield return new WaitForSeconds(1);
     }
 
     IEnumerator FOLLOW(){
 
-        yield return new WaitForSeconds(IdleWaitTime);
+        yield return new WaitForSeconds(1);
     }
 
     IEnumerator FURY(){
 
-        yield return new WaitForSeconds(IdleWaitTime);
+        yield return new WaitForSeconds(10);
     }
 
     IEnumerator IDLE(){
 
-        yield return new WaitForSeconds(IdleWaitTime);
+        yield return new WaitForSeconds(_GM.SlimeIdleWaitTime);
 
         StayStill( 50 );
         
@@ -143,7 +160,7 @@ public class SlimeIA : MonoBehaviour
 
     IEnumerator PATROL( ){
 
-        yield return new WaitForSeconds(PatrolWaitTime);
+        yield return new WaitUntil( () => agent.remainingDistance <= 0 );
         StayStill( 30 );
 
         }
