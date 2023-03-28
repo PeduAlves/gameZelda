@@ -12,6 +12,7 @@ public class SlimeIA : MonoBehaviour
     private bool isDie;
     private bool isWalk;
     private bool isAlert;
+    private bool isAttack = false;
     private int idWayPoint;
     private bool isPlayerVisible;
 
@@ -66,6 +67,20 @@ public class SlimeIA : MonoBehaviour
     }
 
 #region MeusMetodos
+
+    void Attack(){
+
+        if ( !isAttack ){
+
+            isAttack = true;
+            anim.SetTrigger("Attack");
+        }
+    }
+    void AttackIsDone(){
+
+        StartCoroutine("AttackDelay");
+    }
+
     void GetHit( int amount){
 
         if(isDie) return;
@@ -81,6 +96,24 @@ public class SlimeIA : MonoBehaviour
         
             anim.SetTrigger("Die");
             StartCoroutine("Died");
+        }
+    }
+
+    int randomize(){
+
+        int rand = Random.Range( 0, 100 );
+        return rand; 
+    }
+
+    void StayStill(int chance){
+
+        if( randomize() < chance ){
+
+            ChangeState(enemyState.IDLE);
+        }
+        else{
+
+            ChangeState(enemyState.PATROL);
         }
     }
     
@@ -99,22 +132,28 @@ public class SlimeIA : MonoBehaviour
                     StayStill(10);
                 }
             break;
-            case enemyState.FOLLOW:
+
+            case enemyState.FOLLOW: 
 
                 if( isPlayerVisible ){
 
                     destination = _GM.Player.position;
                     agent.destination = destination;
+                    Attack();
                 }
                 else{
 
                     StayStill(10);
                 }
+                
             break;
+            
             case enemyState.FURY:
 
-            destination = _GM.Player.position;
-            agent.destination = destination;
+                destination = _GM.Player.position;
+                agent.destination = destination;
+
+                Attack();
             break;
         }
     }
@@ -210,22 +249,10 @@ public class SlimeIA : MonoBehaviour
         Destroy(this.gameObject);
     }
 
+    IEnumerable AttackDelay(){
 
-    void StayStill(int chance){
-
-        if( randomize() < chance ){
-
-            ChangeState(enemyState.IDLE);
-        }
-        else{
-
-            ChangeState(enemyState.PATROL);
-        }
-    }
-    int randomize(){
-
-        int rand = Random.Range( 0, 100 );
-        return rand; 
+        yield return new WaitForSeconds( _GM.SlimeAttackDelay);
+        isAttack = false;
     }
 
 #endregion

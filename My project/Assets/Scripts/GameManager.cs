@@ -18,5 +18,6 @@ public class GameManager : MonoBehaviour
     public float SlimeIdleWaitTime = 3f;
     public float SlimeDistanceToAttack = 2.3f;
     public float SlimeAlertTime = 1f;
+    public float SlimeAttackDelay = 1f;
 
 }
