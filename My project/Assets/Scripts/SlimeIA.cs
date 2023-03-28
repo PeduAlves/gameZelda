@@ -13,6 +13,7 @@ public class SlimeIA : MonoBehaviour
     private bool isWalk;
     private bool isAlert;
     private int idWayPoint;
+    private bool isPlayerVisible;
 
     public int HP = 3;
     public enemyState state;
@@ -43,6 +44,26 @@ public class SlimeIA : MonoBehaviour
         anim.SetBool("IsWalk", isWalk);
     }
 
+    void OnTriggerEnter(Collider other) {
+        
+        if( other.gameObject.tag == "Player" ){
+            
+            isPlayerVisible = true;
+
+            if( state == enemyState.IDLE || state == enemyState.PATROL ){
+
+            ChangeState( enemyState.ALERT );
+            }
+        } 
+    }
+
+    void OnTriggerExit(Collider other) {
+        
+        if( other.gameObject.tag == "Player" ){
+
+            isPlayerVisible = false;
+        }
+    }
 
 #region MeusMetodos
     void GetHit( int amount){
@@ -69,12 +90,26 @@ public class SlimeIA : MonoBehaviour
             
             case enemyState.ALERT:
 
-            break;
-            case enemyState.EXPLORE:
+                if( isPlayerVisible ){
+            
+                    ChangeState( enemyState.FOLLOW );
+                }
+                else{
 
+                    StayStill(10);
+                }
             break;
             case enemyState.FOLLOW:
 
+                if( isPlayerVisible ){
+
+                    destination = _GM.Player.position;
+                    agent.destination = destination;
+                }
+                else{
+
+                    StayStill(10);
+                }
             break;
             case enemyState.FURY:
 
@@ -89,24 +124,30 @@ public class SlimeIA : MonoBehaviour
         //Para todas as corotinas
         StopAllCoroutines();
         state = newState;
+        isAlert = false;
         print(state);
 
         switch( state ){
             
             case enemyState.ALERT:
+
+                destination = transform.position;
+                agent.stoppingDistance = 0;
+                agent.destination = destination;
+                isAlert = true;
+                anim.SetBool("IsAlert", isAlert);
+
                 StartCoroutine("ALERT");
             break;
-            case enemyState.EXPLORE:
-                StartCoroutine("EXPLORE");
-            break;
             case enemyState.FOLLOW:
+
+                agent.stoppingDistance = _GM.SlimeDistanceToAttack;                    
+
                 StartCoroutine("FOLLOW");
             break;
             case enemyState.FURY:
 
-                destination = _GM.Player.position;
                 agent.stoppingDistance = _GM.SlimeDistanceToAttack;
-                agent.destination = destination;
 
                 StartCoroutine("FURY");
             break;
@@ -132,12 +173,8 @@ public class SlimeIA : MonoBehaviour
 
     IEnumerator ALERT(){
 
-        yield return new WaitForSeconds(1);
-    }
+        yield return new WaitForSeconds( _GM.SlimeAlertTime );
 
-    IEnumerator EXPLORE(){
-
-        yield return new WaitForSeconds(1);
     }
 
     IEnumerator FOLLOW(){
@@ -160,7 +197,8 @@ public class SlimeIA : MonoBehaviour
 
     IEnumerator PATROL( ){
 
-        yield return new WaitUntil( () => agent.remainingDistance <= 0 );
+        yield return new WaitUntil( () => agent.remainingDistance <= 0.5 );
+        agent.stoppingDistance = 0;
         StayStill( 30 );
 
         }
