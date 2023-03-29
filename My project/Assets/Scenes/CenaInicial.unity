@@ -3473,6 +3473,7 @@ MonoBehaviour:
   SlimeIdleWaitTime: 3
   SlimeDistanceToAttack: 2.3
   SlimeAlertTime: 3
+  SlimeAttackDelay: 1
 --- !u!1001 &894046830
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5626,7 +5627,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f50848ee851c76948b9ab859e89a4875, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  HP: 30
+  isAttack: 0
+  HP: 3000
   state: 0
 --- !u!136 &1824736205
 CapsuleCollider:
@@ -5656,7 +5658,7 @@ NavMeshAgent:
   m_Acceleration: 8
   avoidancePriority: 50
   m_AngularSpeed: 120
-  m_StoppingDistance: 2.3
+  m_StoppingDistance: 0
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1

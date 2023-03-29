@@ -12,7 +12,7 @@ public class SlimeIA : MonoBehaviour
     private bool isDie;
     private bool isWalk;
     private bool isAlert;
-    private bool isAttack = false;
+    public bool isAttack = false;
     private int idWayPoint;
     private bool isPlayerVisible;
 
@@ -68,15 +68,18 @@ public class SlimeIA : MonoBehaviour
 
 #region MeusMetodos
 
-    void Attack(){
+    void Ataque(){
 
         if ( !isAttack ){
 
             isAttack = true;
             anim.SetTrigger("Attack");
+            print("ataque");
         }
+        AttackIsDoneSlime();
+        
     }
-    void AttackIsDone(){
+    void AttackIsDoneSlime(){
 
         StartCoroutine("AttackDelay");
     }
@@ -122,7 +125,7 @@ public class SlimeIA : MonoBehaviour
         switch( state ){
             
             case enemyState.ALERT:
-
+                
                 if( isPlayerVisible ){
             
                     ChangeState( enemyState.FOLLOW );
@@ -134,12 +137,13 @@ public class SlimeIA : MonoBehaviour
             break;
 
             case enemyState.FOLLOW: 
-
+                
                 if( isPlayerVisible ){
 
                     destination = _GM.Player.position;
                     agent.destination = destination;
-                    Attack();
+                    
+                    Ataque();
                 }
                 else{
 
@@ -149,11 +153,13 @@ public class SlimeIA : MonoBehaviour
             break;
             
             case enemyState.FURY:
-
+               
                 destination = _GM.Player.position;
                 agent.destination = destination;
-
-                Attack();
+                if( agent.remainingDistance <= agent.stoppingDistance){
+                    Ataque();
+                }
+                
             break;
         }
     }
@@ -164,6 +170,7 @@ public class SlimeIA : MonoBehaviour
         StopAllCoroutines();
         state = newState;
         isAlert = false;
+        isAttack = false;
         print(state);
 
         switch( state ){
@@ -249,9 +256,9 @@ public class SlimeIA : MonoBehaviour
         Destroy(this.gameObject);
     }
 
-    IEnumerable AttackDelay(){
+    IEnumerator AttackDelay(){
 
-        yield return new WaitForSeconds( _GM.SlimeAttackDelay);
+        yield return new WaitForSeconds(_GM.SlimeAttackDelay);
         isAttack = false;
     }
 
