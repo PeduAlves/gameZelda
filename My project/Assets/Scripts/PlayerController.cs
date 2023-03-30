@@ -4,17 +4,21 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    private GameManager _GM;
     private Animator anim;
     private CharacterController controller;
     private Vector3 direction;
     private float horizontal;
     private Collider[] hitinfo;
     private bool isAtack;
+    private bool isHurt = false;
+    private bool isDie;
     private bool isWalk;
     private float vertical;
 
     
     [Header("Player Config")]
+    public int HP = 15;
     public float MovementSpeed = 3f;
 
     [Header("Attack Config")]
@@ -32,6 +36,7 @@ public class PlayerController : MonoBehaviour
 
         controller = GetComponent<CharacterController>();
         anim = GetComponent<Animator>();
+        _GM = FindObjectOfType(typeof(GameManager)) as GameManager;
     }
     void Update(){
         
@@ -41,6 +46,13 @@ public class PlayerController : MonoBehaviour
         
     }
 
+    private void OnTriggerEnter(Collider other) {
+        
+        if( other.gameObject.tag == "TakeDamage" ){
+
+            GetHit( _GM.SlimeHitDamage );
+        }
+    }
 
 #region MeusMetodos
 
@@ -62,6 +74,26 @@ public class PlayerController : MonoBehaviour
     void AttackIsDone(){
 
         isAtack = false;
+    }
+
+    void GetHit( int AmountDmg ){
+
+        if( isDie || isHurt ) return;
+
+        HP -= AmountDmg;
+        isHurt = true;        
+        StartCoroutine("IsHurt");
+
+        if( HP > 0 ){
+
+            anim.SetTrigger("GetHit");
+        }
+        else{
+
+            isDie = true;
+            anim.SetTrigger("Die");
+        }
+
     }
 
     //Recebe inputs do sistema
@@ -102,6 +134,12 @@ public class PlayerController : MonoBehaviour
     void UpdateAnimator(){
 
         anim.SetBool("isWalk", isWalk);
+    }
+
+    IEnumerator IsHurt(){
+
+        yield return new WaitForSeconds(_GM.PlayerGetHitDelay);
+        isHurt = false;
     }
 
 #endregion

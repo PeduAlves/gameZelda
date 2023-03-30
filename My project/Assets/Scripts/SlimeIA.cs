@@ -70,11 +70,10 @@ public class SlimeIA : MonoBehaviour
 
     void Ataque(){
 
-        if ( !isAttack ){
+        if ( !isAttack && isPlayerVisible == true ){
 
             isAttack = true;
             anim.SetTrigger("Attack");
-            print("ataque");
         }
         AttackIsDoneSlime();
         
@@ -102,6 +101,14 @@ public class SlimeIA : MonoBehaviour
         }
     }
 
+    void LookAt(){
+
+        
+        Vector3 lookDirection = ( _GM.Player.position - transform.position ).normalized;
+        Quaternion lookRotation = Quaternion.LookRotation(lookDirection);
+        transform.rotation = Quaternion.Slerp( transform.rotation, lookRotation, _GM.SlimeLookAtSpeed * Time.deltaTime );
+    }
+
     int randomize(){
 
         int rand = Random.Range( 0, 100 );
@@ -125,25 +132,33 @@ public class SlimeIA : MonoBehaviour
         switch( state ){
             
             case enemyState.ALERT:
-                
+
                 if( isPlayerVisible ){
-            
+
+                    LookAt();
+                    StartCoroutine("ALERT");
                     ChangeState( enemyState.FOLLOW );
                 }
                 else{
 
                     StayStill(10);
                 }
+                
+
             break;
 
             case enemyState.FOLLOW: 
                 
                 if( isPlayerVisible ){
+                    
+                    LookAt();
 
                     destination = _GM.Player.position;
                     agent.destination = destination;
                     
-                    Ataque();
+                    if( agent.remainingDistance <= agent.stoppingDistance){
+                        Ataque();
+                    }
                 }
                 else{
 
@@ -154,6 +169,8 @@ public class SlimeIA : MonoBehaviour
             
             case enemyState.FURY:
                
+                LookAt();
+
                 destination = _GM.Player.position;
                 agent.destination = destination;
                 if( agent.remainingDistance <= agent.stoppingDistance){
@@ -171,7 +188,6 @@ public class SlimeIA : MonoBehaviour
         state = newState;
         isAlert = false;
         isAttack = false;
-        print(state);
 
         switch( state ){
             

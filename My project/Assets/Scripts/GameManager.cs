@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour
 {
     [Header("Player")]
     public Transform Player;
+    public float PlayerGetHitDelay = 1.5f;
 
     [Header("Slime IA")]
     public Transform[] SlimeWayPoints;
@@ -19,5 +20,9 @@ public class GameManager : MonoBehaviour
     public float SlimeDistanceToAttack = 2.3f;
     public float SlimeAlertTime = 1f;
     public float SlimeAttackDelay = 1f;
+    public float SlimeLookAtSpeed = 1f;
+
+    [Header("Slime Config")]
+    public int SlimeHitDamage = 5;
 
 }
